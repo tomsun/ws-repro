@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Status Code Tester</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Status Code Tester</h1>
+    <p>Test WebSocket connections with different HTTP status codes:</p>
+    
+    <div class="test">
+        <h3>200 - OK (Returns HTML)</h3>
+        <button onclick="testWebSocket('/200-returnshtml')">Test WebSocket</button>
+        <button onclick="testCurl('/200-returnshtml')">Show cURL</button>
+        <div id="result-200-returnshtml" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>200 - OK (WebSocket Upgrade)</h3>
+        <button onclick="testWebSocket('/200-upgrades')">Test WebSocket</button>
+        <button onclick="testCurl('/200-upgrades')">Show cURL</button>
+        <div id="result-200-upgrades" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>101 - Switching Protocols (WebSocket Upgrade)</h3>
+        <button onclick="testWebSocket('/101')">Test WebSocket</button>
+        <button onclick="testCurl('/101')">Show cURL</button>
+        <div id="result-101" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>301 - Permanent Redirect (WebSocket Upgrade)</h3>
+        <button onclick="testWebSocket('/301-upgrade')">Test WebSocket</button>
+        <button onclick="showCurl('/301-upgrade')">Show cURL</button>
+        <div id="result-301-upgrade" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>302 - Temporary Redirect (WebSocket Upgrade)</h3>
+        <button onclick="testWebSocket('/302-upgrade')">Test WebSocket</button>
+        <button onclick="showCurl('/302-upgrade')">Show cURL</button>
+        <div id="result-302-upgrade" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>401 - Unauthorized (Returns HTML)</h3>
+        <button onclick="testWebSocket('/401-returnshtml')">Test WebSocket</button>
+        <button onclick="showCurl('/401-returnshtml')">Show cURL</button>
+        <div id="result-401-returnshtml" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>401 - Unauthorized (WebSocket Upgrade)</h3>
+        <button onclick="testWebSocket('/401-upgrades')">Test WebSocket</button>
+        <button onclick="showCurl('/401-upgrades')">Show cURL</button>
+        <div id="result-401-upgrades" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>402 - Payment Required (Returns HTML)</h3>
+        <button onclick="testWebSocket('/402-returnshtml')">Test WebSocket</button>
+        <button onclick="showCurl('/402-returnshtml')">Show cURL</button>
+        <div id="result-402-returnshtml" class="result"></div>
+    </div>
+
+    <div class="test">
+        <h3>402 - Payment Required (WebSocket Upgrade)</h3>
+        <button onclick="testWebSocket('/402-upgrades')">Test WebSocket</button>
+        <button onclick="showCurl('/402-upgrades')">Show cURL</button>
+        <div id="result-402-upgrades" class="result"></div>
+    </div>
+
+    <script>
+        function testWebSocket(path) {
+            const resultDiv = document.getElementById('result-' + path.substring(1).replace(/\//g, '-'));
+            resultDiv.innerHTML = '<div class="info">Connecting...</div>';
+            
+            try {
+                const ws = new WebSocket('ws://' + window.location.host + path);
+                
+                ws.onopen = function(event) {
+                    resultDiv.innerHTML = '<div class="success">✓ WebSocket connected successfully!</div>';
+                };
+                
+                ws.onerror = function(error) {
+                    resultDiv.innerHTML = '<div class="error">✗ WebSocket connection failed: ' + error.type + '</div>';
+                };
+                
+                ws.onclose = function(event) {
+                    if (event.code !== 1000) {
+                        resultDiv.innerHTML += '<div class="error">Connection closed with code: ' + event.code + ', reason: ' + event.reason + '</div>';
+                    }
+                };
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="error">✗ Error creating WebSocket: ' + error.message + '</div>';
+            }
+        }
+
+        function showCurl(path) {
+            const resultDiv = document.getElementById('result-' + path.substring(1).replace(/\//g, '-'));
+            const curlCommand = `curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" -H "Sec-WebSocket-Version: 13" -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" "http://${window.location.host}${path}"`;
+            resultDiv.innerHTML = '<div class="info">cURL command:<br><code>' + curlCommand + '</code><br><br>Run this in your terminal to test the HTTP response.</div>';
+        }
+    </script>
+</body>
+</html>
